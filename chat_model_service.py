@@ -1,7 +1,6 @@
 from typing import Any, Iterator, Literal
 
 from langchain.chat_models import init_chat_model
-from langchain_community.chat_models.tongyi import ChatTongyi
 from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_openai import ChatOpenAI
 
@@ -12,6 +11,7 @@ from env_utils import (
     MINIMAX_API_KEY,
     MINIMAX_BASE_URL,
     TONGYI_API_KEY,
+    TONGYI_BASE_URL,
 )
 
 # 支持的模型类型。
@@ -59,18 +59,19 @@ class ChatModelService:
     def _create_openai_model(self) -> ChatOpenAI:
         """创建 OpenAI 兼容模型实例。"""
         return ChatOpenAI(
-            model="minmax-m2.5",
+            model="minimax-m2.5",
             temperature=0.5,
             api_key=API_KEY,
             base_url=BASE_URL,
         )
 
-    def _create_tongyi_model(self) -> ChatTongyi:
+    def _create_tongyi_model(self):
         """创建通义千问模型实例。"""
-        return ChatTongyi(
-            model="qwen-max",
-            temperature=0.7,
+        return init_chat_model(
+            model="qwen3.5-plus",
+            model_provider="openai",
             api_key=TONGYI_API_KEY,
+            base_url=TONGYI_BASE_URL,
         )
 
     def _create_custom_model(self) -> CustomLLM:
@@ -139,5 +140,5 @@ class ChatModelService:
 if __name__ == "__main__":
     # 这里给出一个最小可运行示例，便于直接验证封装是否可用。
     service = ChatModelService()
-    for text in service.stream("帮我讲个笑话吧"):
+    for text in service.stream("帮我讲个笑话吧", "tongyi"):
         print(text, end="")

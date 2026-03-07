@@ -6,13 +6,7 @@ from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_openai import ChatOpenAI
 
 from customLLM import CustomLLM
-from env_utils import (
-    API_KEY,
-    BASE_URL,
-    MINIMAX_API_KEY,
-    MINIMAX_BASE_URL,
-    TONGYI_API_KEY,
-)
+from env_utils import MINIMAX_API_KEY, MINIMAX_BASE_URL, TONGYI_API_KEY, TONGYI_BASE_URL
 
 # 示例：统一演示不同聊天模型的初始化与调用方式（不涉及业务逻辑）
 # - ChatOpenAI：OpenAI 兼容接口（此处可对接 MiniMax 兼容端点）
@@ -22,11 +16,14 @@ from env_utils import (
 # OpenAI 兼容接口，使用 langchain_openai 库
 # temperature 越大，输出通常越发散；越小越稳定
 llm_openai = ChatOpenAI(
-    model="minmax-m2.5", temperature=0.5, api_key=API_KEY, base_url=BASE_URL
+    model="qwen3.5-plus",
+    temperature=0.5,
+    api_key=TONGYI_API_KEY,
+    base_url=TONGYI_BASE_URL,
 )
 
 # 使用千问模型进行对话（需正确配置 TONGYI_API_KEY）
-llm_tongyi = ChatTongyi(model="qwen-max", temperature=0.7, api_key=TONGYI_API_KEY)
+llm_tongyi = ChatTongyi(model="qwen3.5-plus", temperature=0.7, api_key=TONGYI_API_KEY)
 
 # 使用自定义模型封装（便于统一扩展重试、日志、参数处理）
 llm_custom = CustomLLM(
@@ -55,6 +52,6 @@ llm_rate_limiter = init_chat_model(
 
 if __name__ == "__main__":
     # 流式调用：逐块输出模型回复内容
-    res = llm_rate_limiter.stream("帮我讲个笑话吧")
+    res = llm_openai.stream("帮我讲个笑话吧")
     for item in res:
         print(item.content, end="")

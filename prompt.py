@@ -13,5 +13,5 @@ llm = ChatModelService().get_model()
 chain = prompt_template | llm
 
 if __name__ == "__main__":
-    res = chain.invoke(input={"last_name": "喻", "gender": "男"})
+    res = chain.invoke({"last_name": "喻", "gender": "男"})
     print(res.content)
