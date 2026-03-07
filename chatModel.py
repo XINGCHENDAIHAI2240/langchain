@@ -52,6 +52,7 @@ llm_rate_limiter = init_chat_model(
     api_key=MINIMAX_API_KEY,
 )
 
+
 if __name__ == "__main__":
     # 流式调用：逐块输出模型回复内容
     res = llm_rate_limiter.stream("帮我讲个笑话吧")
