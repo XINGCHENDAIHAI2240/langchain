@@ -1,3 +1,4 @@
+import json
 from typing import Literal, TypedDict
 
 from openai import OpenAI
@@ -58,8 +59,8 @@ class ClientOpenAI:
         return res.choices[0].message.content
 
     def __create_schema_message(self) -> Message:
-        _schema = ["日期", "股票名称", "开盘价", "收盘价", "成交量"]
-        _exaples_data = [
+        schema = ["日期", "股票名称", "开盘价", "收盘价", "成交量"]
+        exaples_data = [
             {
                 "content": (
                     "2024年1月15日，阿里巴巴股票开盘价为124.20元，"
@@ -101,7 +102,39 @@ class ClientOpenAI:
             },
         ]
         # TODO: 实现完整方法逻辑
-        pass
+        self.__message = [
+            {
+                "role": "system",
+                "content": (
+                    f"你帮我完成信息提取，我给你句子或片段，"
+                    f"你抽取{schema}信息，按 json字符串输出，"
+                    "如果某些信息不存在，就输出空字符串，请参考如下示例："
+                ),
+            }
+        ]
+        for item in exaples_data:
+            self.__message.append({"role": "user", "content": item["content"]})
+            self.__message.append(
+                {
+                    "role": "assistant",
+                    "content": json.dumps(item["answers"], ensure_ascii=False),
+                }
+            )
+        return self.__message
+
+    def question_schema(self, qs: str, model: str = "minimax-m2.5") -> str:
+        self.__create_schema_message()
+        self.__message.append(
+            {
+                "role": "user",
+                "content": f"请按照上述提示，抽取这段文本的信息，抽取句子或片段：{qs}",
+            }
+        )
+        res = self.__client.chat.completions.create(
+            model=model,
+            messages=self.__message,
+        )
+        return res.choices[0].message.content
 
 
 if __name__ == "__main__":
@@ -126,3 +159,17 @@ if __name__ == "__main__":
     #     print(f"文本: {text[:30]}...")
     #     print(f"分类: {result}")
     #     print("-" * 50)
+
+    # 测试 question_schema 方法
+    schema_test_texts = [
+        "2024年1月20日，特斯拉股票收盘价为185.60美元，成交量为5000万股",
+        "京东在2024年2月5日的开盘价为145.00元，收盘价为148.50元",
+        "宁德时代股票当日成交2500万股",
+        "百度股票2024年3月1日收盘价275.80元",
+    ]
+
+    for text in schema_test_texts:
+        result = client.question_schema(text)
+        print(f"文本: {text}")
+        print(f"提取结果: {result}")
+        print("-" * 50)
