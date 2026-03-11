@@ -26,7 +26,7 @@ class ChatModelService:
         # 使用字典缓存模型实例，避免重复初始化。
         self._models: dict[str, Any] = {}
 
-    def get_model(self, model_type: ModelType = "rate_limited") -> Any:
+    def get_model(self, model_type: ModelType = "rate_limited"):
         """
         根据模型类型返回对应的模型实例。
 
@@ -65,7 +65,7 @@ class ChatModelService:
             base_url=BASE_URL,
         )
 
-    def _create_tongyi_model(self):
+    def _create_tongyi_model(self) -> ChatOpenAI:
         """创建通义千问模型实例。"""
         return init_chat_model(
             model="qwen3.5-plus",
@@ -82,7 +82,7 @@ class ChatModelService:
             base_url=MINIMAX_BASE_URL,
         )
 
-    def _create_rate_limited_model(self) -> Any:
+    def _create_rate_limited_model(self) -> ChatOpenAI:
         """
         创建带内存限流器的模型实例。
 

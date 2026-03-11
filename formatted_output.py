@@ -1,44 +1,33 @@
-from langchain_core.output_parsers import SimpleJsonOutputParser
-from pydantic import BaseModel, Field
+from typing import Literal, TypedDict
 
-from chat_model_service import ChatModelService
-
-
-class Movie(BaseModel):
-    title: str = Field(..., description="电影标题")
-    director: str = Field(..., description="电影导演")
-    release_year: int = Field(..., description="电影上映年份")
-    rating: float = Field(..., description="电影评分")
+from openai import OpenAI
 
 
-class FormattedOutputService(ChatModelService):
-    """
-    这是一个示例服务类，展示如何使用 ChatModelService 来获取结构化输出。
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.llm = self.get_model("tongyi")
-
-    def structured_output(self, query: str):
-        # 使用 with_structured_output 方法指定输出结构为 Movie
-        output = self.llm.with_structured_output(Movie).invoke(query)
-        return output
-
-    def simple_json_output(self, query: str):
-        # 使用 with_structured_output 方法指定输出结构为 dict
-        output = self.llm.with_structured_output(dict).invoke(query)
-        return output
+class Message(TypedDict):
+    role: Literal["user", "assistant", "system"]
+    content: str
 
 
-if __name__ == "__main__":
-    service = ChatModelService()
-    # 不使用 with_structured_output，直接用普通方式调用
-    llm = service.get_model("tongyi")
-
-    # 在 prompt 中明确要求 JSON 格式输出
-    query = "提供电影盗墓空间的详细信息"
-
-    output = query | llm | SimpleJsonOutputParser()
-
-    print(output)
+class ClientOpenAI:
+    def __init__(self, api_key: str, base_url: str):
+        self.__client = OpenAI(api_key=api_key, base_url=base_url)
+        self.__exaples_type: Literal = [
+            "新闻报道",
+            "财务报道",
+            "公司公告",
+            "分析师报告",
+        ]
+        self.__exaples_data: dict = {
+            "新闻报道": "今日某科技公司宣布推出新一代AI产品，"
+            "市场反应热烈，股价上涨5%。",
+            "财务报道": "该公司季度营收达到100亿元，同比增长20%，超出市场预期。",
+            "公司公告": "董事会宣布将于下月召开年度股东大会，讨论分红方案。",
+            "分析师报告": "分析师上调目标价至150元，维持买入评级，看好公司长期发展。",
+        }
+        self.__question: list = [
+            "该公司最近有什么重大新闻？",
+            "请总结一下本季度的财务表现。",
+            "什么时候召开股东大会？",
+            "分析师对公司有什么评价？",
+            "公司发布了哪些公告？",
+        ]
